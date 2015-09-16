@@ -133,6 +133,8 @@ public struct EasyFormInputConfig
     public var paddingAboveText = 8.0
     public var paddingBelowText = 12.0
     public var multilineAdjustments = UIEdgeInsetsMake(-5.0, -5.0, 12.0, 5.0)
+    
+    public init() { }
 }
 
 @objc public protocol EasyFormInputDelegate
