@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "InstrumentUtils_iOS"
-  s.version      = "1.0.0-beta2"
+  s.version      = "1.0.0-beta3"
   s.summary      = "Handy tools for iOS from Instrument in Portland, OR"
 
   s.description  = <<-DESC
@@ -21,9 +21,10 @@ DESC
   s.license          = { :type => "FreeBSD", :file => "LICENSE" }
   s.authors          = { "Instrument Marketing, Inc." => "appledev@weareinstrument.com", "Moses Gunesch" => "moses.gunesch@instrument.com" }
   s.social_media_url = "https://twitter.com/instrument"
-  s.platform         = :ios, "8.0"
-  use_frameworks!
-  s.source           = { :git => "https://github.com/Instrument/InstrumentUtils_iOS.git", :tag => "1.0.0-beta2" }
+  s.platform         = :ios
+  s.ios.deployment_target = "8.0"
+  s.requires_arc     = true
+  s.source           = { :git => "https://github.com/Instrument/InstrumentUtils_iOS.git", :tag => "1.0.0-beta3" }
   s.source_files     = "InstrumentUtils_iOS_swift"
 
 end
