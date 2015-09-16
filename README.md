@@ -1,5 +1,7 @@
 ## InstrumentUtils_iOS ##
 
+Utils are in Swift 2.0, and can be used from Objective-C.
+
 EasyFormInput
 -------
 A handsome iOS text input component that can handle:
