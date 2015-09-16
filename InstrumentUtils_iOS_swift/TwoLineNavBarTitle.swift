@@ -69,10 +69,10 @@ public class TwoLineNavBarTitle: UIView
             view.addSubview(view.subtitleLabel)
             view.addEqualConstraintForSubview(view.titleLabel, attribute: NSLayoutAttribute.Width)
             view.addEqualConstraintForSubview(view.titleLabel, attribute: NSLayoutAttribute.CenterX)
-            view.addEqualConstraintForSubview(view.titleLabel, attribute: NSLayoutAttribute.CenterY).constant = 10
+            view.addEqualConstraintForSubview(view.titleLabel, attribute: NSLayoutAttribute.CenterY)!.constant = 10
             view.addEqualConstraintForSubview(view.subtitleLabel, attribute: NSLayoutAttribute.Width)
             view.addEqualConstraintForSubview(view.subtitleLabel, attribute: NSLayoutAttribute.CenterX)
-            view.addEqualConstraintForSubview(view.subtitleLabel, attribute: NSLayoutAttribute.CenterY).constant = -8
+            view.addEqualConstraintForSubview(view.subtitleLabel, attribute: NSLayoutAttribute.CenterY)!.constant = -8
             
             viewController.navigationItem.titleView = view
         }

@@ -481,7 +481,7 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
         textView.backgroundColor = UIColor.clearColor() // For testing multiline edge tolerances: textView.backgroundColor = UIColor(red: 0.0, green: 0.3, blue: 0.8, alpha: 0.1)
         self.insertSubview(textView, belowSubview: titleLabel)
         let bottomOfTitleLabel: CGFloat = titleLabel.frame.origin.y + titleLabel.frame.size.height
-        self.addEqualConstraintForSubview(textView, attribute: NSLayoutAttribute.Top).constant = -(bottomOfTitleLabel + CGFloat(config.paddingAboveText))
+        self.addEqualConstraintForSubview(textView, attribute: NSLayoutAttribute.Top)!.constant = -(bottomOfTitleLabel + CGFloat(config.paddingAboveText))
         self.addEqualConstraintForSubview(textView, attribute: NSLayoutAttribute.Leading)
         self.addEqualConstraintForSubview(textView, attribute: NSLayoutAttribute.Trailing)
         let textToLineConstraint = NSLayoutConstraint(item: textView, attribute: NSLayoutAttribute.Bottom, relatedBy: NSLayoutRelation.GreaterThanOrEqual,
@@ -557,7 +557,7 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
                 button = makeButtonTitled(config.pickerSelectButtonTitle, action: "selectButtonTapped:")
                 self.selectButton = button
                 self.addEqualConstraintForSubview(lineView, otherSubview: button, attribute: NSLayoutAttribute.Trailing)
-                self.addEqualConstraintForSubview(createButton, attribute: NSLayoutAttribute.Trailing, otherSubview: button, otherAttribute: NSLayoutAttribute.Leading).constant = -20
+                self.addEqualConstraintForSubview(createButton!, attribute: NSLayoutAttribute.Trailing, otherSubview: button, otherAttribute: NSLayoutAttribute.Leading)!.constant = -20
             }
             self.addEqualConstraintForSubview(lineView, attribute: NSLayoutAttribute.Top, otherSubview: button, otherAttribute: NSLayoutAttribute.Bottom)
             button.setTitleColor(config.pickerButtonColor, forState: UIControlState.Normal)
@@ -598,7 +598,7 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
                     }
                     self.insertSubview(self.picker!, belowSubview:textView)
                     let topConstraint = self.addEqualConstraintForSubview(self.picker!, attribute: NSLayoutAttribute.Top, otherSubview: textView, otherAttribute: NSLayoutAttribute.Bottom)
-                    topConstraint.constant = -(25.0 + (self.isNonTextEntryType() ? textView.frame.size.height : 0))
+                    topConstraint!.constant = -(25.0 + (self.isNonTextEntryType() ? textView.frame.size.height : 0))
                     self.addEqualConstraintForSubview(self.picker!, attribute: NSLayoutAttribute.Width)
                     self.addEqualConstraintForSubview(self.picker!, attribute: NSLayoutAttribute.CenterX)
                     self.addEqualConstraintForSubview(self.lineView, attribute: NSLayoutAttribute.Top, otherSubview: self.picker!, otherAttribute: NSLayoutAttribute.Bottom)

@@ -71,8 +71,8 @@ class BlockingProgressIndicator
             
             targetView.addSubview(_blockingProgressIndicatorBackingView!)
             targetView.addSubview(_blockingProgressIndicatorSpinner!)
-            targetView.addSizeMatchingConstraintsForSubview(_blockingProgressIndicatorBackingView)
-            targetView.addCenteringConstraintsForSubview(_blockingProgressIndicatorSpinner)
+            targetView.addSizeMatchingConstraintsForSubview(_blockingProgressIndicatorBackingView!)
+            targetView.addCenteringConstraintsForSubview(_blockingProgressIndicatorSpinner!)
             _blockingProgressIndicatorSpinner!.startAnimating()
         }
         
@@ -92,7 +92,7 @@ class BlockingProgressIndicator
                 let targetView = UIApplication.sharedApplication().keyWindow!
                 targetView.addSubview(_blockingProgressIndicatorLabel!)
                 targetView.addEqualConstraintForSubview(_blockingProgressIndicatorLabel!, attribute: NSLayoutAttribute.CenterX)
-                targetView.addEqualConstraintForSubview(_blockingProgressIndicatorLabel!, attribute: NSLayoutAttribute.CenterY).constant = -40
+                targetView.addEqualConstraintForSubview(_blockingProgressIndicatorLabel!, attribute: NSLayoutAttribute.CenterY)!.constant = -40
             }
         }
     }
