@@ -38,15 +38,15 @@ Standalone component with a spinner, label, and overlay scrim.
 
 Dependencies: INConstraintsHelpers
 */
-class BlockingProgressIndicator
+public class BlockingProgressIndicator
 {
-    static var labelFont = UIFont.systemFontOfSize(14.0)
-    static var labelColor = UIColor.whiteColor()
-    static var scrimColor = UIColor.blackColor()
-    static var scrimAlpha:CGFloat = 0.5
-    static var spinnerStyle = UIActivityIndicatorViewStyle.White
+    public static var labelFont = UIFont.systemFontOfSize(14.0)
+    public static var labelColor = UIColor.whiteColor()
+    public static var scrimColor = UIColor.blackColor()
+    public static var scrimAlpha:CGFloat = 0.5
+    public static var spinnerStyle = UIActivityIndicatorViewStyle.White
     
-    class func isShowing() -> Bool {
+    public class func isShowing() -> Bool {
         return _blockingProgressIndicatorSpinner != nil && _blockingProgressIndicatorSpinner!.superview != nil
     }
     
@@ -55,7 +55,7 @@ class BlockingProgressIndicator
     
     You may call this method again while the spinner is showing to update the message.
     */
-    class func show(message:String? = nil)
+    public class func show(message:String? = nil)
     {
         if !self.isShowing() {
             let targetView = UIApplication.sharedApplication().keyWindow!
@@ -100,7 +100,7 @@ class BlockingProgressIndicator
     /**
     Hides the blocking view.
     */
-    class func hide() {
+    public class func hide() {
         if !self.isShowing() {
             return;
         }

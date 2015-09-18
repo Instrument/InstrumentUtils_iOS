@@ -57,6 +57,7 @@ Configuration options.
 - Parameter maxCharsForTextInput: `0` = unlimited. Default `255`
 - Parameter multiline: Default `false`
 
+- Parameter minValueForNumberInput: `.Number` mode.
 - Parameter maxValueForNumberInput: `.Number` mode. `0` (default) = unlimited
 - Parameter numberShowsCommaSeparators: `.Number` mode. Default `true`
 - Parameter decimalPlaces: `.Number` mode. Default `2` places
@@ -93,12 +94,15 @@ Configuration options.
 - Parameter paddingAboveText: Padding between title and text
 - Parameter paddingBelowText: Padding between text and line
 - Parameter multilineAdjustments: Tweaks applied to make mutliline text view visually match single-line fields
+
+- Parameter managesInsetsForKeyboard: Reduces containing scrollView's bottom contentInset when keyboard is shown.
 */
 public struct EasyFormInputConfig
 {
     public var maxCharsForTextInput = 255
     public var multiline = false
     
+    public var minValueForNumberInput: Double = 0
     public var maxValueForNumberInput: Double = 0
     public var numberShowsCommaSeparators = true
     public var decimalPlaces = 2
@@ -133,6 +137,8 @@ public struct EasyFormInputConfig
     public var paddingAboveText = 8.0
     public var paddingBelowText = 12.0
     public var multilineAdjustments = UIEdgeInsetsMake(-5.0, -5.0, 12.0, 5.0)
+    
+    public var managesInsetsForKeyboard = true
     
     public init() { }
 }
@@ -292,6 +298,25 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
     }
     
     /**
+    By default, autocapitalization is disabled in `.Email` mode.
+    
+    Exposed in case you want to change this after the component is instantiated.
+    */
+    public var autocapitalizationType:UITextAutocapitalizationType {
+        get {
+            return self.config.multiline ? (self.textView as! UITextView).autocapitalizationType : (self.textView as! UITextField).autocapitalizationType
+        }
+        set {
+            if self.config.multiline {
+                (self.textView as! UITextView).autocapitalizationType = newValue
+            }
+            else {
+                (self.textView as! UITextField).autocapitalizationType = newValue
+            }
+        }
+    }
+    
+    /**
     By default, `.Text` mode uses default keyboard, `.Email` uses `.EmailAddress` and `.Number` uses a numerical keypad.
     
     Exposed in case you want to change this after the component is instantiated.
@@ -366,6 +391,7 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
             
             if type == .Email {
                 self.keyboardType = UIKeyboardType.EmailAddress
+                self.autocapitalizationType = UITextAutocapitalizationType.None
             }
             
             if let initVal = initialValue as? String {
@@ -377,7 +403,10 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
             self.keyboardType = (config.decimalPlaces == 0 ? UIKeyboardType.NumberPad : UIKeyboardType.DecimalPad)
             
             if let initVal = initialValue as? Double {
-                self.rawText = "\(initVal)"
+                self.rawText = "\(max(initVal, config.minValueForNumberInput))"
+            }
+            else if let initVal = initialValue as? Int {
+                self.rawText = "\(max(Double(initVal), config.minValueForNumberInput))"
             }
             
         case .Select:
@@ -439,6 +468,16 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
         let parentViewHeightConstraint = NSLayoutConstraint(item: self, attribute: NSLayoutAttribute.Height, relatedBy: NSLayoutRelation.GreaterThanOrEqual,
             toItem: nil, attribute: NSLayoutAttribute.NotAnAttribute, multiplier: 1.0, constant: containerHeight)
          parentView.addConstraint(parentViewHeightConstraint)
+        if let parentSuperView = parentView.superview {
+            if config.multiline && parentSuperView.getConstraintForOtherView(parentView, withAttribute: NSLayoutAttribute.Bottom) == nil {
+                // Solves a tricky problem that comes up when inputs are being generated and added in code instead of in IB,
+                // where a bottom constraint is needed now for the resizing to work, but it hasn't been installed yet.
+                let extraBottomConstraint = NSLayoutConstraint(item: parentSuperView, attribute: NSLayoutAttribute.Bottom, relatedBy: NSLayoutRelation.Equal,
+                    toItem: parentView, attribute: NSLayoutAttribute.Bottom, multiplier: 1.0, constant: 0)
+                extraBottomConstraint.priority = 1
+                parentSuperView.addConstraint(extraBottomConstraint)
+            }
+        }
         
         // line
         self.addSubview(lineView)
@@ -510,8 +549,8 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
         textViewDidChange()
         updateEntryState(true)
         
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardDidShow:", name: UIKeyboardDidShowNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardDidHide:", name: UIKeyboardDidHideNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillShow:", name: UIKeyboardWillShowNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillHide:", name: UIKeyboardWillHideNotification, object: nil)
     }
     
     deinit {
@@ -778,8 +817,23 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
         }
     }
     
-    internal func keyboardDidShow(notification:NSNotification)
+    internal func keyboardWillShow(notification:NSNotification)
     {
+        if config.managesInsetsForKeyboard {
+            // Reduce visible area so keyboard doesn't cover screen. This is pretty coarse since there's no top-down management of with multiple inputs
+            // on a page, so every input will do this. That also means that insets can't be easily cached/restored, so zeros are assumed.
+            if let keyboardSize = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.CGRectValue() {
+                let contentInsets = UIEdgeInsets(top: 0, left: 0, bottom: keyboardSize.height, right: 0)
+                if let scv = parentScrollView() {
+                    UIView.animateWithDuration(0.3) {
+                        scv.contentInset = contentInsets
+                        scv.scrollIndicatorInsets = contentInsets
+                        scv.layoutIfNeeded()
+                    }
+                }
+            }
+        }
+        
         keyboardIsShowing = true
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(0.1 * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) {
             [unowned self] in
@@ -789,10 +843,20 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
         }
     }
     
-    internal func keyboardDidHide(notification:NSNotification)
+    internal func keyboardWillHide(notification:NSNotification)
     {
+        if config.managesInsetsForKeyboard {
+            if let scv = parentScrollView() { // See note in keyboardDidShow
+                //scv.layer.removeAllAnimations()
+                UIView.animateWithDuration(0.3) {
+                    scv.contentInset = UIEdgeInsetsZero
+                    scv.scrollIndicatorInsets = UIEdgeInsetsZero
+                    scv.layoutIfNeeded()
+                }
+            }
+        }
         keyboardIsShowing = false
-    }
+   }
     
     public func scrollToVisible()
     {
@@ -801,21 +865,27 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
         }
         
         parentView.layoutIfNeeded()
+        let f = parentView.frame
+        if f.origin.y > 0 {
+            if let scv = parentScrollView() {
+                scv.scrollRectToVisible(CGRectMake(0, f.origin.y + f.size.height - 10.0, f.size.width, 30.0), animated: true)
+            }
+        }
+    }
+    
+    internal func parentScrollView() -> UIScrollView?
+    {
         var sv = parentView.superview
         repeat {
             if let scv = sv as? UIScrollView {
-                let f = parentView.frame
-                if f.origin.y == 0 {
-                    return
-                }
-                scv.scrollRectToVisible(CGRectMake(0, f.origin.y + f.size.height - 10.0, f.size.width, 30.0), animated: true)
-                break
+                return scv
             }
             else {
                 sv = sv?.superview
             }
         }
         while sv != nil
+        return nil
     }
     
     internal func sizeToText()
@@ -882,10 +952,7 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
         updateEntryState()
         if type.isPickerType()
         {
-            if isNonTextEntryType() && userTappedCreateButton {
-                userTappedCreateButton = false
-            }
-            else if !stateIsEmptyOrDefault() {
+            if !userTappedCreateButton && !isNonTextEntryType() && !stateIsEmptyOrDefault() {
                 if (pickerCanCreateUniqueEntry() && config.typeInSelect) {
                     // For unique entry mode with search enabled, assume a partial word match indicates a search result and fill it. Otherwise it's a unique entry.
                     // (In the less likely case where they want a unique entry that's a partial word match, they can tap the Create button.)
@@ -897,6 +964,7 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
                     updateTextToPickerValue()
                 }
             }
+            self.userTappedCreateButton = false
             
             if type == .Select && config.typeInSelect {
                 selectValues = _selectValues.map { $0 }
@@ -936,9 +1004,9 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
             return true
         }
         
-        let newText = (self.rawText as NSString).stringByReplacingCharactersInRange(range, withString: string) as String
+        let nextText = (self.rawText as NSString).stringByReplacingCharactersInRange(range, withString: string) as String
         if type != .Number {
-            return !(config.maxCharsForTextInput > 0 && newText.characters.count > config.maxCharsForTextInput)
+            return !(config.maxCharsForTextInput > 0 && nextText.characters.count > config.maxCharsForTextInput)
         }
         
         // .Number
@@ -946,7 +1014,8 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
             return (config.decimalPlaces > 0 && self.rawText.rangeOfString(".") == nil)
         }
         
-        if !isDelete && config.maxValueForNumberInput > 0 && (newText as String).extractedDoubleValue() > config.maxValueForNumberInput {
+        let nextNumber = (nextText as String).extractedDoubleValue()
+        if !isDelete && config.maxValueForNumberInput > 0 && nextNumber > config.maxValueForNumberInput {
             return false
         }
         
@@ -955,7 +1024,7 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
             // special decimal-format functionality for inserting & deleting new numbers from right and shifting existing digits
             
             if isDelete {
-                var newValue = newText.extractedDoubleValue()
+                var newValue = nextText.extractedDoubleValue()
                 if newValue == 0 {
                     self.rawText = ""
                 }
@@ -965,18 +1034,22 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
                 else if range.length == rawText.characters.count {
                     newValue = string.extractedDoubleValue() / pow(10.0, Double(config.decimalPlaces))
                 }
-                self.rawText = "\(newValue)"
+                self.rawText = "\(max(config.minValueForNumberInput, newValue))"
             }
             else {
+                let incomingValue = string.extractedDoubleValue() / pow(10.0, Double(config.decimalPlaces))
                 var currentValue = (value as? Double ?? 0)
                 currentValue *= pow(10.0, Double(string.characters.count))
-                let incomingValue = string.extractedDoubleValue() / pow(10.0, Double(config.decimalPlaces))
-                self.rawText = "\( currentValue + incomingValue )"
+                self.rawText = "\( max(config.minValueForNumberInput, currentValue + incomingValue) )"
             }
             textViewDidChange()
             return false
         }
-       
+        
+        if config.minValueForNumberInput != 0 && nextNumber < config.minValueForNumberInput {
+            return false
+        }
+        
         return true
     }
     

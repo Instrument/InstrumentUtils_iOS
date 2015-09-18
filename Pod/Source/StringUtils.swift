@@ -40,25 +40,43 @@ extension String
         }
     }
     private static var _basicNumberFormatter:NSNumberFormatter?
+    private static var _numbersAndDecimalSet = NSCharacterSet(charactersInString: "1234567890.-")
     
+    /**
+    - Returns: whether the string is a valid email address
+    */
     public func isValidEmail() -> Bool
     {
         let regex = try! NSRegularExpression(pattern: String.emailPattern, options: [NSRegularExpressionOptions.CaseInsensitive])
         return regex.numberOfMatchesInString(self, options: [], range: NSMakeRange(0, self.characters.count)) > 0
     }
     
+    /**
+    - Returns: a double for a string containing a number, where non-numerical characters will be ignored
+    */
     public func extractedDoubleValue() -> Double
     {
-        return (self.extractedNumberString().stringByReplacingOccurrencesOfString(",", withString: "") as NSString).doubleValue
+        return (self.extractedDecimalDigits() as NSString).doubleValue
     }
     
-    public func extractedDecimalDigits() -> String // Only returns the numbers within the string, without minus sign or decimal point
+    /**
+    - Returns: simple numerical string including minus sign, decimal and digits only
+    */
+    public func extractedDecimalDigits() -> String
     {
-        return self.componentsSeparatedByCharactersInSet(NSCharacterSet.decimalDigitCharacterSet().invertedSet).joinWithSeparator("")
+        return self.componentsSeparatedByCharactersInSet(String._numbersAndDecimalSet.invertedSet).joinWithSeparator("")
     }
     
-    // Extracted number string from this string with basic formatting: minus sign and decimal point, with optional minimum and maximum decimal places and comma separators.
-    // This is a simplified replacement for using NSNumberFormatter, which is a pain to use with text input.
+    /**
+    A simplified replacement for using NSNumberFormatter, which is a pain to use with text input.
+    
+    Formatting includes:
+    - minus sign and decimal point
+    - optional minimum and maximum decimal places
+    - optional comma separators
+    
+    - Returns: Extracted number string from this string with basic formatting
+    */
     public func extractedNumberString(decimalPlaces places:Int = 0, decimalPlacesAreFixed:Bool = false, includeCommas:Bool = false) -> String
     {
         var firstPart:String = ""
