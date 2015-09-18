@@ -4,6 +4,8 @@ Utils are in Swift 2.0, and can be used from Objective-C.
 
 EasyFormInput
 -------
+![EasyFormInput](Example/EasyFormInput.png)
+
 A handsome iOS text input component that can handle:
 
  - single- or multi-line text entry
@@ -11,6 +13,7 @@ A handsome iOS text input component that can handle:
  - numerical entry with decimal & currency options
  - date selection
  - dropdown list selection, with type-in options for search or creating new entries
+![EasyFormInput Type-in Select](Example/EasyFormInput-typeInSelect.png)
 
 The component shows the input title in the main textfield as a prompt with a line below it. When tapped into the title, the line transitions color and the title transitions to a small title above the entered or picked text.
 
@@ -27,12 +30,14 @@ To use in a scroll view, set up a blank container view that has constraints on i
 
 As long as constraints are in place you should be able to set up a config containing your settings, optionally set a delegate, call a single constructor, and then check the component's `value` property to retrieve the input value.
 
-`if let validEmail = emailInput.value as? String { ...`
+``` Swift
+if let validEmail = emailInput.value as? String { }
 
-`if let date = dateInput.value as? NSDate { ...`
+if let date = dateInput.value as? NSDate { }
 
-```if let teamSelection = teamInput.value as? [String:String] {...
-} else if let newTeamName = teamInput.value as? String { ...```
+if let teamSelection = teamInput.value as? [String:String] { }
+else if let newTeamName = teamInput.value as? String { }
+```
 
 See component documentation for more details.
 
@@ -46,31 +51,39 @@ ConstraintsHelpers
 -------
 Shortcut methods for working with auto-layout constraints.
 
-    extension UIView
+``` Swift
+extension UIView
+
+// Retrieval
+func getConstraintsForOtherView:
+func getConstraintForOtherView:withAttribute:
+
+// Removal
+func removeAllConstraints:
+func removeConstraintsForOtherView:
+
+// Generation
+func addConstraintsWithVisualFormat:views:
+func addConstraintsWithVisualFormats:views:
+func addConstraintForSubview:withVisualFormat:
+func addSizeMatchingConstraintsForSubview:
+func addSizeMatchingConstraintsForSubview:withMargins:
+func addCenteringConstraintsForSubview:
+func addSimpleConstraintForAttribute:constant:
+func addConstraintForSubview:attribute:toTargetViewAttribute:constant:
+func addEqualConstraintForSubview:attribute:
+func addEqualConstraintsForSubview:attributes:
+func addEqualConstraintForSubview:subviewAttribute attribute:toTargetViewAttribute:
+func addEqualConstraintForSubview:otherSubview:attribute:
+func addEqualConstraintsForSubview:otherSubview:attributes:
+func addEqualConstraintForSubview:attribute:otherSubview:otherAttribute:
+
+// Scroll View Constraints Helpers
+createScrollableContainerViewInScrollView:margins:
+createScrollableContainerView:
+addStackingConstraintsForSubview:subview:topItem:top:edgeMargins:bottomItem:bottom:height:
+```
     
-    // Retrieval
-    func getConstraintsForOtherView:
-    func getConstraintForOtherView:withAttribute:
-    
-    // Removal
-    func removeAllConstraints:
-    func removeConstraintsForOtherView:
-    
-    // Generation
-    func addConstraintsWithVisualFormat:views:
-    func addConstraintsWithVisualFormats:views:
-    func addConstraintForSubview:withVisualFormat:
-    func addSizeMatchingConstraintsForSubview:
-    func addSizeMatchingConstraintsForSubview:withMargins:
-    func addCenteringConstraintsForSubview:
-    func addSimpleConstraintForAttribute:constant:
-    func addConstraintForSubview:attribute:toTargetViewAttribute:constant:
-    func addEqualConstraintForSubview:attribute:
-    func addEqualConstraintsForSubview:attributes:
-    func addEqualConstraintForSubview:subviewAttribute attribute:toTargetViewAttribute:
-    func addEqualConstraintForSubview:otherSubview:attribute:
-    func addEqualConstraintsForSubview:otherSubview:attributes:
-    func addEqualConstraintForSubview:attribute:otherSubview:otherAttribute:
 
 TwoLineNavBarTitle
 -------
@@ -80,8 +93,19 @@ Display modes include:
 
  - Large title with smaller subtitle below it
 
-`class func updateNavBarTitleFor(viewController:UIViewController, title:String, subtitle:String)`
+``` Swift
+class func updateNavBarTitleFor(viewController:UIViewController, title:String, subtitle:String)
+```
 
  - Single title that word-wraps to two lines for long titles
 
-`class func updateNavBarTitleFor(viewController:UIViewController, title:String)`
+``` Swift
+class func updateNavBarTitleFor(viewController:UIViewController, title:String)`
+```
+Installation
+------------
+
+```ruby
+pod 'InstrumentUtils_iOS'
+```
+

@@ -72,7 +72,7 @@ class EasyFormInputs_CodeLayout: UIViewController {
         config.decimalPlaces = 0
         config.minValueForNumberInput = 1
         mainView.addStackingConstraintsForSubview(makeContainer(), topItem: previousContainer(), top: innerMargin, height: nominalInputHeight)
-        self.roundNumberInput = EasyFormInput(parentView: lastContainer(), type: EasyFormInputType.Number, title: "Guests (min 1)", required: true, configuration: config)
+        self.roundNumberInput = EasyFormInput(parentView: lastContainer(), type: EasyFormInputType.Number, title: "Guests - at least 1", required: true, configuration: config)
         
         // Example of adding some other UI component into the vertical stack (the slider doesn't actively do anything in this example)
         

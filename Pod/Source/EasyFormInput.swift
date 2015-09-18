@@ -29,6 +29,8 @@ either expressed or implied, of the FreeBSD Project.
 
 import UIKit
 
+let defaultBlue = UIColor(red: 0.0, green: 122.0/255.0, blue: 1.0, alpha: 1.0)
+
 /**
 - Parameter Text: Can be single or multiline text entry, depending on configuration
 - Parameter Email: Validated using configuration's `validationErrorTextColor`, which can be checked using `valueIsValid`
@@ -78,7 +80,7 @@ Configuration options.
 - Parameter titleLabelFont: Small title label above input text after entry. Default system `12.0`
 - Parameter titleLabelColor: Default `lightGrayColor`
 - Parameter lineColor: Default `lightGrayColor`
-- Parameter lineColorDuringEditing: Default `blueColor`
+- Parameter lineColorDuringEditing: Default `defaultBlue`
 - Parameter backgroundColor: Set on container view. Default `clearColor`. *(Tip: clear allows you to set a temp bg color on
                              the container in IB to make it easier to work with)*
 
@@ -87,7 +89,7 @@ Configuration options.
 - Parameter pickerSelectButtonTitle: Default `"Select"`
 - Parameter pickerCreateButtonTitle: Shows in `.TextAndSelect` mode only. Default `"Create"`
 - Parameter pickerResetButtonTitle: Allows user to fully clear the field. Default `"Reset"`
-- Parameter pickerButtonColor: Default `blueColor`
+- Parameter pickerButtonColor: Default `defaultBlue`
 - Parameter pickerButtonFont: Default system `12.0`
 
 - Parameter margins: Padding around component
@@ -122,7 +124,7 @@ public struct EasyFormInputConfig
     public var titleLabelFont = UIFont.systemFontOfSize(12.0)
     public var titleLabelColor = UIColor.lightGrayColor()
     public var lineColor = UIColor.lightGrayColor()
-    public var lineColorDuringEditing = UIColor.blueColor()
+    public var lineColorDuringEditing = defaultBlue
     public var backgroundColor = UIColor.clearColor()
     
     public var pickerTextColor = UIColor.grayColor()
@@ -130,7 +132,7 @@ public struct EasyFormInputConfig
     public var pickerSelectButtonTitle = "Select"
     public var pickerCreateButtonTitle = "Create"
     public var pickerResetButtonTitle = "Reset"
-    public var pickerButtonColor = UIColor.blueColor()
+    public var pickerButtonColor = defaultBlue
     public var pickerButtonFont = UIFont.systemFontOfSize(12.0)
     
     public var margins = UIEdgeInsetsMake(0, 0, 0, 0)

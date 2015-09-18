@@ -70,7 +70,7 @@ class EasyFormInputs_IBLayout: UIViewController {
         config.multiline = false
         config.decimalPlaces = 0
         config.minValueForNumberInput = 1
-        self.roundNumberInput = EasyFormInput(parentView: container4, type: EasyFormInputType.Number, title: "Guests (min 1)", required: true, configuration: config)
+        self.roundNumberInput = EasyFormInput(parentView: container4, type: EasyFormInputType.Number, title: "Guests - at least 1", required: true, configuration: config)
         
         // Currency Input with 2 fixed decimal places (numbers flow from right to left as they're typed in)
         config.minValueForNumberInput = 0
