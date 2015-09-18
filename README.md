@@ -100,7 +100,7 @@ class func updateNavBarTitleFor(viewController:UIViewController, title:String, s
  - Single title that word-wraps to two lines for long titles
 
 ``` Swift
-class func updateNavBarTitleFor(viewController:UIViewController, title:String)`
+class func updateNavBarTitleFor(viewController:UIViewController, title:String)
 ```
 Installation
 ------------
