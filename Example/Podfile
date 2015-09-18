@@ -1,0 +1,9 @@
+
+platform :ios, '8.0'
+use_frameworks!
+
+target 'InstrumentUtils_iOS_swift' do
+
+pod 'InstrumentUtils_iOS', :git => 'https://github.com/Instrument/InstrumentUtils_iOS.git'
+
+end

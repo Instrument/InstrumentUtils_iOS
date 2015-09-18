@@ -1,0 +1,19 @@
+PODS:
+  - InstrumentUtils_iOS (1.0.2)
+
+DEPENDENCIES:
+  - InstrumentUtils_iOS (from `https://github.com/Instrument/InstrumentUtils_iOS.git`)
+
+EXTERNAL SOURCES:
+  InstrumentUtils_iOS:
+    :git: https://github.com/Instrument/InstrumentUtils_iOS.git
+
+CHECKOUT OPTIONS:
+  InstrumentUtils_iOS:
+    :commit: 73e20fcd412ce1471335980c1eb66ce9c15abc74
+    :git: https://github.com/Instrument/InstrumentUtils_iOS.git
+
+SPEC CHECKSUMS:
+  InstrumentUtils_iOS: 0a64f27ffc49bf5a3363daefd7f88931facea2bb
+
+COCOAPODS: 0.38.2
