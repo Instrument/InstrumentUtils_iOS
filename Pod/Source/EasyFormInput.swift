@@ -181,6 +181,13 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
     */
     public var delegate:EasyFormInputDelegate?
     
+    public var type: EasyFormInputType {
+        get {
+            return _type
+        }
+    }
+    internal var _type:EasyFormInputType = EasyFormInputType.Text
+    
     /**
     Usable typed value of the component.
     
@@ -336,7 +343,6 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
     }
     
     internal var parentView:UIView!
-    internal var type:EasyFormInputType = EasyFormInputType.Text
     internal var required = false
     internal var _textView:UITextView?
     internal var _textField:UITextField?
@@ -380,7 +386,7 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
         self.init()
         
         self.parentView = parentView
-        self.type = type
+        self._type = type
         self.config = configuration ?? EasyFormInputConfig()
         self.title = title
         self.required = required
