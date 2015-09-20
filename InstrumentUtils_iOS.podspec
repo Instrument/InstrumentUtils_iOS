@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "InstrumentUtils_iOS"
-  s.version      = "1.0.7"
+  s.version      = "1.0.8"
   s.summary      = "Handy tools for iOS from Instrument in Portland, OR"
 
   s.description  = <<-DESC
@@ -23,7 +23,7 @@ DESC
   s.social_media_url = "https://twitter.com/instrument"
   s.platform         = :ios, "8.0"
   s.requires_arc     = true
-  s.source           = { :git => "https://github.com/Instrument/InstrumentUtils_iOS.git", :tag => "1.0.7" }
+  s.source           = { :git => "https://github.com/Instrument/InstrumentUtils_iOS.git", :tag => "1.0.8" }
   s.source_files     = 'Pod/Source/**/*'
 
 end
