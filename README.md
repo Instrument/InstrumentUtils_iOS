@@ -81,7 +81,7 @@ BlockingProgressIndicator
 -------
 A simple blocking spinnner view with the option to show a text string. Font and text color are configurable prior to use.
 
-![BlockingProgressIndicator](BlockingProgressIndicator.png)
+![BlockingProgressIndicator](readme-images/BlockingProgressIndicator.png)
 
 ConstraintsHelpers
 -------
