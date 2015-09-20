@@ -56,28 +56,28 @@ class EasyFormInputs_CodeLayout: UIViewController {
         
         // Single Line Text Input
         mainView.addStackingConstraintsForSubview(makeContainer(), topItem: mainView, top: outerMargin, height: nominalInputHeight)
-        self.textInput = EasyFormInput(parentView: lastContainer(), type: EasyFormInputType.Text, title: "Name", configuration: config)
+        self.textInput = EasyFormInput(parentView: lastContainer(), type: .Text, title: "Name", configuration: config)
         
         // Email Input
         mainView.addStackingConstraintsForSubview(makeContainer(), topItem: previousContainer(), top: innerMargin, height: nominalInputHeight)
-        self.emailInput = EasyFormInput(parentView: lastContainer(), type: EasyFormInputType.Email, title: "Email", required: true, configuration: config)
+        self.emailInput = EasyFormInput(parentView: lastContainer(), type: .Email, title: "Email", required: true, configuration: config)
         
         // Multi-line Text Input
         config.multiline = true
         mainView.addStackingConstraintsForSubview(makeContainer(), topItem: previousContainer(), top: innerMargin, height: nominalInputHeight)
-        self.multilineTextInput = EasyFormInput(parentView: lastContainer(), type: EasyFormInputType.Text, title: "Description", initialValue:"This is a multiline text container that will automatically expand as you enter text.", configuration: config)
+        self.multilineTextInput = EasyFormInput(parentView: lastContainer(), type: .Text, title: "Description", initialValue:"This is a multiline text container that will automatically expand as you enter text.", configuration: config)
         
         // Rounded Number Input
         config.multiline = false
         config.decimalPlaces = 0
         config.minValueForNumberInput = 1
         mainView.addStackingConstraintsForSubview(makeContainer(), topItem: previousContainer(), top: innerMargin, height: nominalInputHeight)
-        self.roundNumberInput = EasyFormInput(parentView: lastContainer(), type: EasyFormInputType.Number, title: "Guests - at least 1", required: true, configuration: config)
+        self.roundNumberInput = EasyFormInput(parentView: lastContainer(), type: .Number, title: "Guests - at least 1", required: true, configuration: config)
         
         // Example of adding some other UI component into the vertical stack (the slider doesn't actively do anything in this example)
         
         mainView.addSubview(slider)
-        mainView.addEqualConstraintForSubview(slider, attribute: NSLayoutAttribute.Top, otherSubview: lastContainer(), otherAttribute: NSLayoutAttribute.Bottom)!.constant = innerMargin
+        mainView.addEqualConstraintForSubview(slider, attribute: NSLayoutAttribute.Top, otherSubview: lastContainer(), otherAttribute: NSLayoutAttribute.Bottom).constant = innerMargin
         mainView.addEqualConstraintForSubview(slider, attribute: NSLayoutAttribute.CenterX)
         slider.addSimpleConstraintForAttribute(NSLayoutAttribute.Width, constant: 250)
         
@@ -87,21 +87,21 @@ class EasyFormInputs_CodeLayout: UIViewController {
         config.decimalPlacesAreFixed = true
         config.currencySymbol = "$"
         mainView.addStackingConstraintsForSubview(makeContainer(), topItem: slider, top: innerMargin, height: nominalInputHeight)
-        self.currencyInput = EasyFormInput(parentView: lastContainer(), type: EasyFormInputType.Number, title: "Price", configuration: config)
+        self.currencyInput = EasyFormInput(parentView: lastContainer(), type: .Number, title: "Price", configuration: config)
         
         // Date Input (you can customize the date style in the config if you want)
         mainView.addStackingConstraintsForSubview(makeContainer(), topItem: previousContainer(), top: innerMargin, height: nominalInputHeight)
-        self.dateInput = EasyFormInput(parentView: lastContainer(), type: EasyFormInputType.Date, title: "Date", initialValue:NSDate(), configuration: config)
+        self.dateInput = EasyFormInput(parentView: lastContainer(), type: .Date, title: "Date", initialValue:NSDate(), configuration: config)
         
         // Select input with type-in search filtering (config.typeInSelect can be turned off for a plain select)
         mainView.addStackingConstraintsForSubview(makeContainer(), topItem: previousContainer(), top: innerMargin, height: nominalInputHeight)
-        self.typeInSelectInput = EasyFormInput(parentView: lastContainer(), type: EasyFormInputType.Select, title: "Team", initialValue:"Crush", selectValues: teamData, configuration: config)
+        self.typeInSelectInput = EasyFormInput(parentView: lastContainer(), type: .Select, title: "Team", initialValue:"Crush", selectValues: teamData, configuration: config)
         
         // Select with search filtering that also lets you create a new unique value.
         config.typeInSelect = true
         config.typeInSelectAllowsUnique = true
         mainView.addStackingConstraintsForSubview(makeContainer(), topItem: previousContainer(), top: innerMargin, height: nominalInputHeight)
-        self.typeInSelectWithUniqueInput = EasyFormInput(parentView: lastContainer(), type: EasyFormInputType.Select, title: "Client", selectValues: clientData, configuration: config)
+        self.typeInSelectWithUniqueInput = EasyFormInput(parentView: lastContainer(), type: .Select, title: "Client", selectValues: clientData, configuration: config)
         
         // Add a submit button to the bottom of the stack.
         // Constraints: edgeMargins is passed nil so we can float the button to center. Bottom constraint params are passed to finish the stack.

@@ -153,9 +153,36 @@ public struct EasyFormInputConfig
 }
 
 /**
-A configurable form entry component with various text, numerical, and select options
+A configurable form entry component with text, email, number, date and select modes
 
-- SeeAlso: valueIsValid
+``` Swift
+public init(parentView:UIView, type:EasyFormInputType, title:String, required:Bool = false, initialValue:Any? = nil, selectValues:[[String:String]]? = nil, configuration:EasyFormInputConfig? = nil)
+```
+
+Example usage:
+
+``` Swift
+    self.textInput = EasyFormInput(parentView: container1, type: .Text, title: "Name", configuration: config)
+```
+
+You can configure:
+
+- Fonts and text colors
+- Date and number formats
+- Line color, and color during editing
+- Padding around the component and main text
+
+The component works in a UIScrollView (and most likely in a UITableView as well, although I haven't tested that). The selected
+field will scroll into view when the keyboard shows.
+
+To use in a scroll view, set up a blank container view that has constraints on it including a nominal height (perhaps 50 points)
+and constraints that bind it above and below. As long as everything in scroll view is bound from the superview top to bottom and
+each item includes a height, the scroll view will be able to calculate its content size automatically and will operate correctly.
+(Note that your container view's height constraint will be replaced at runtime so it can change its height dynamically, so don't
+expect a fixed height, and don't add any referencing outlet on the container's height constraint.)
+
+As long as constraints are in place you should be able to set up a config containing your settings, optionally set a delegate, 
+call a single constructor, and then check the component's `value` property to retrieve the input value.
 
 - Parameter parentView: An empty container view that you want this component to fill. It must use auto-layout, and for sizing to work inside
                         a scrollView, its height and top & botom edges should be bounded. The view's height constraint will be replaced for
@@ -175,6 +202,8 @@ If the field is required, the initial title prior to entry will include the word
 
 - Parameter configuration: A `EasyFormInputConfig` defining settings. You can modify and reuse a single config, since structs are copied
                            when passed
+
+- SeeAlso: valueIsValid
 */
 public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIPickerViewDataSource, UIPickerViewDelegate
 {
@@ -183,6 +212,9 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
     */
     public var delegate:EasyFormInputDelegate?
     
+    /**
+    Mode such as `.Date`
+    */
     public var type: EasyFormInputType {
         get {
             return _type
@@ -194,6 +226,7 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
     Usable typed value of the component.
     
     The type of the return value varies depending on its current state:
+    
     - `nil` if the component has no entry
     - `String` for `.Text`, `.Email`, or `.Select` mode with the config `typeInSelectAllowsUnique` and there is a unique entry
     - `Double` for `.Number` mode
@@ -383,9 +416,15 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
     internal var userTappedCreateButton = false
     internal var config:EasyFormInputConfig!
     
-    public convenience init(parentView:UIView, type:EasyFormInputType, title:String, required:Bool = false, initialValue:Any? = nil, selectValues:[[String:String]]? = nil, configuration:EasyFormInputConfig? = nil)
+    /**
+    Designated initializer.
+    
+    Documented above on the class declaration, since Quick Help won't parse this block at time of writing.
+    (If this changes in future, I'd like to move the init docs here.)
+    */
+    public init(parentView:UIView, type:EasyFormInputType, title:String, required:Bool = false, initialValue:Any? = nil, selectValues:[[String:String]]? = nil, configuration:EasyFormInputConfig? = nil)
     {
-        self.init()
+        super.init(frame: CGRectZero)
         
         self.parentView = parentView
         self._type = type
@@ -470,7 +509,7 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
         parentView.backgroundColor = config.backgroundColor
         parentView.addSizeMatchingConstraintsForSubview(self, withMargins: config.margins)
         let containerHeight = parentView.frame.size.height
-        if let existingHeightConstraint = parentView.getConstraintForOtherView(parentView, withAttribute: NSLayoutAttribute.Height) {
+        if let existingHeightConstraint = parentView.getSimpleConstraintWithAttribute(NSLayoutAttribute.Height) {
             parentView.removeConstraint(existingHeightConstraint)
         }
         let parentViewHeightConstraint = NSLayoutConstraint(item: self, attribute: NSLayoutAttribute.Height, relatedBy: NSLayoutRelation.GreaterThanOrEqual,
@@ -530,7 +569,7 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
         textView.backgroundColor = UIColor.clearColor() // For testing multiline edge tolerances: textView.backgroundColor = UIColor(red: 0.0, green: 0.3, blue: 0.8, alpha: 0.1)
         self.insertSubview(textView, belowSubview: titleLabel)
         let bottomOfTitleLabel: CGFloat = titleLabel.frame.origin.y + titleLabel.frame.size.height
-        self.addEqualConstraintForSubview(textView, attribute: NSLayoutAttribute.Top)!.constant = -(bottomOfTitleLabel + CGFloat(config.paddingAboveText))
+        self.addEqualConstraintForSubview(textView, attribute: NSLayoutAttribute.Top).constant = -(bottomOfTitleLabel + CGFloat(config.paddingAboveText))
         self.addEqualConstraintForSubview(textView, attribute: NSLayoutAttribute.Leading)
         self.addEqualConstraintForSubview(textView, attribute: NSLayoutAttribute.Trailing)
         let textToLineConstraint = NSLayoutConstraint(item: textView, attribute: NSLayoutAttribute.Bottom, relatedBy: NSLayoutRelation.GreaterThanOrEqual,
@@ -559,6 +598,10 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
         
         NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillShow:", name: UIKeyboardWillShowNotification, object: nil)
         NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillHide:", name: UIKeyboardWillHideNotification, object: nil)
+    }
+
+    required public init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
     }
     
     deinit {
@@ -606,7 +649,7 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
                 button = makeButtonTitled(config.pickerSelectButtonTitle, action: "selectButtonTapped:")
                 self.selectButton = button
                 self.addEqualConstraintForSubview(lineView, otherSubview: button, attribute: NSLayoutAttribute.Trailing)
-                self.addEqualConstraintForSubview(createButton!, attribute: NSLayoutAttribute.Trailing, otherSubview: button, otherAttribute: NSLayoutAttribute.Leading)!.constant = -20
+                self.addEqualConstraintForSubview(createButton!, attribute: NSLayoutAttribute.Trailing, otherSubview: button, otherAttribute: NSLayoutAttribute.Leading).constant = -20
             }
             self.addEqualConstraintForSubview(lineView, attribute: NSLayoutAttribute.Top, otherSubview: button, otherAttribute: NSLayoutAttribute.Bottom)
             button.setTitleColor(config.pickerButtonColor, forState: UIControlState.Normal)
@@ -647,7 +690,7 @@ public class EasyFormInput: UIView, UITextViewDelegate, UITextFieldDelegate, UIP
                     }
                     self.insertSubview(self.picker!, belowSubview:textView)
                     let topConstraint = self.addEqualConstraintForSubview(self.picker!, attribute: NSLayoutAttribute.Top, otherSubview: textView, otherAttribute: NSLayoutAttribute.Bottom)
-                    topConstraint!.constant = -(25.0 + (self.isNonTextEntryType() ? textView.frame.size.height : 0))
+                    topConstraint.constant = -(25.0 + (self.isNonTextEntryType() ? textView.frame.size.height : 0))
                     self.addEqualConstraintForSubview(self.picker!, attribute: NSLayoutAttribute.Width)
                     self.addEqualConstraintForSubview(self.picker!, attribute: NSLayoutAttribute.CenterX)
                     self.addEqualConstraintForSubview(self.lineView, attribute: NSLayoutAttribute.Top, otherSubview: self.picker!, otherAttribute: NSLayoutAttribute.Bottom)

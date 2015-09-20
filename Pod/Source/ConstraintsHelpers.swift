@@ -29,12 +29,31 @@ either expressed or implied, of the FreeBSD Project.
 
 import UIKit
 
+let MissingSubviewCrashMessage = "Subview not found in view."
+
 extension UIView
 {
     // MARK: - Retrieval
     
     /**
-    Retrieves all constraints on this view that relate to another view.
+    Retrieves a self-bound simple constraint like .Width or .Height on this view.
+    */
+    public func getSimpleConstraintWithAttribute(attribute: NSLayoutAttribute) -> NSLayoutConstraint?
+    {
+        for constraint in self.constraints
+        {
+            if (constraint.firstItem as? UIView == self
+                && constraint.firstAttribute == attribute
+                && constraint.secondItem == nil)
+            {
+                return constraint
+            }
+        }
+        return nil
+    }
+    
+    /**
+    Retrieves all constraints on this view that connect to another view.
     */
     public func getConstraintsForOtherView(view: UIView) -> [NSLayoutConstraint]?
     {
@@ -45,7 +64,8 @@ extension UIView
         var matches = [NSLayoutConstraint]()
         for constraint in self.constraints
         {
-            if constraint.firstItem as? UIView == view || constraint.secondItem as? UIView == view
+            if (constraint.firstItem as? UIView == view && constraint.secondItem as? UIView == self)
+                || (constraint.firstItem as? UIView == self && constraint.secondItem as? UIView == view)
             {
                 matches.append(constraint)
             }
@@ -54,7 +74,13 @@ extension UIView
     }
     
     /**
-    Simple way to retrieve a constraint on this view by specifying a single attribute. The attribute declared for the other view will be used if not found for this view.
+    Retrieves a constraint on this view that includes a specific attribute.
+    
+    The attribute declared for the other view will be used if not found for this view. (For example if you
+    search for .Trailing and no match is found, but the other view binds its .Trailing to this view's .Leading,
+    that constraint will be matched and returned.)
+    
+    Constraints between two separate subviews within this view won't be matched.
     */
     public func getConstraintForOtherView(view: UIView, withAttribute attribute: NSLayoutAttribute) -> NSLayoutConstraint?
     {
@@ -64,7 +90,7 @@ extension UIView
             }
             
             // Do a second pass to inspect secondAttribute only if no firstAttribute match was found.
-            if let matchIndex = matches.indexOf({ $0.secondAttribute == attribute && ($0.firstItem as! UIView == self || $0.secondItem as! UIView == self) }) {
+            if let matchIndex = matches.indexOf({ $0.secondAttribute == attribute }) {
                 return matches[matchIndex]
             }
         }
@@ -139,33 +165,33 @@ extension UIView
     */
     public func addConstraintForSubview(subview: UIView, withVisualFormat format: String) -> NSLayoutConstraint?
     {
-        if self.logConstraintsErrorForSubview(subview, withMethodName: NSStringFromSelector(__FUNCTION__)) { return nil }
+        precondition(subviews.contains(subview), MissingSubviewCrashMessage)
         let constraints = NSLayoutConstraint.constraintsWithVisualFormat(format, options: NSLayoutFormatOptions(rawValue: 0), metrics: nil, views: ["subview": subview])
-        if self.logErrorForNonSingleConstraintCount(constraints.count, withMethodName: NSStringFromSelector(__FUNCTION__)) && constraints.count == 0 {
-            return nil
+        if let constraint = constraints.first {
+            subview.translatesAutoresizingMaskIntoConstraints = false // mandatory to make constraints work
+            self.addConstraint(constraint)
+            return constraint
         }
-        subview.translatesAutoresizingMaskIntoConstraints = false // mandatory to make constraints work
-        self.addConstraint(constraints.first!)
-        return constraints.first!
+        return nil
     }
     
     /**
     Adds constraints to the subview that make it match this view's bounds.
     - Returns:  Constraints added
     */
-    public func addSizeMatchingConstraintsForSubview(subview: UIView) -> [NSLayoutConstraint]?
+    public func addSizeMatchingConstraintsForSubview(subview: UIView) -> [NSLayoutConstraint]
     {
-        if self.logConstraintsErrorForSubview(subview, withMethodName: NSStringFromSelector(__FUNCTION__)) { return nil }
-        return self.addConstraintsWithVisualFormats(["H:|-0-[subview]-0-|", "V:|-0-[subview]-0-|"], views:["subview": subview])
+        precondition(subviews.contains(subview), MissingSubviewCrashMessage)
+        return self.addConstraintsWithVisualFormats(["H:|-0-[subview]-0-|", "V:|-0-[subview]-0-|"], views:["subview": subview])!
     }
     
     /**
     Adds constraints to the subview that make it inset from this view's bounds by the margins provided.
     - Returns:  Constraints added
     */
-    public func addSizeMatchingConstraintsForSubview(subview: UIView, withMargins margins: UIEdgeInsets) -> [NSLayoutConstraint]?
+    public func addSizeMatchingConstraintsForSubview(subview: UIView, withMargins margins: UIEdgeInsets) -> [NSLayoutConstraint]
     {
-        if self.logConstraintsErrorForSubview(subview, withMethodName: NSStringFromSelector(__FUNCTION__)) { return nil }
+        precondition(subviews.contains(subview), MissingSubviewCrashMessage)
         subview.translatesAutoresizingMaskIntoConstraints = false // mandatory to make constraints work
         let viewsDict = ["subview": subview]
         var constraints = [NSLayoutConstraint]()
@@ -179,17 +205,12 @@ extension UIView
     Adds constraints to the subview that keep it centered in this view.
     - Returns:  Constraints added
     */
-    public func addCenteringConstraintsForSubview(subview: UIView) -> [NSLayoutConstraint]?
+    public func addCenteringConstraintsForSubview(subview: UIView) -> [NSLayoutConstraint]
     {
-        if self.logConstraintsErrorForSubview(subview, withMethodName: NSStringFromSelector(__FUNCTION__)) { return nil }
+        precondition(subviews.contains(subview), MissingSubviewCrashMessage)
         subview.translatesAutoresizingMaskIntoConstraints = false // mandatory to make constraints work
-        let viewsDict = ["self": self, "subview": subview]
-        var constraints = [NSLayoutConstraint]()
-        // visual format centering syntax found at: https://github.com/evgenyneu/center-vfl
-        constraints.appendContentsOf(NSLayoutConstraint.constraintsWithVisualFormat("H:[self]-(<=1)-[subview]", options:NSLayoutFormatOptions.AlignAllCenterY, metrics:nil, views:viewsDict))
-        constraints.appendContentsOf(NSLayoutConstraint.constraintsWithVisualFormat("V:[self]-(<=1)-[subview]", options:NSLayoutFormatOptions.AlignAllCenterX, metrics:nil, views:viewsDict))
-        self.addConstraints(constraints)
-        return constraints
+        return [self.addEqualConstraintForSubview(subview, attribute: .CenterX),
+            self.addEqualConstraintForSubview(subview, attribute: .CenterY)]
     }
     
     /**
@@ -200,7 +221,7 @@ extension UIView
     public func addSimpleConstraintForAttribute(attribute: NSLayoutAttribute, constant: CGFloat) -> NSLayoutConstraint
     {
         self.translatesAutoresizingMaskIntoConstraints = false // mandatory to make constraints work
-        let constraint = NSLayoutConstraint(item: self, attribute:attribute, relatedBy:NSLayoutRelation.Equal, toItem:nil, attribute:NSLayoutAttribute.NotAnAttribute, multiplier:1.0, constant:constant)
+        let constraint = NSLayoutConstraint(item: self, attribute:attribute, relatedBy:NSLayoutRelation.Equal, toItem:nil, attribute:.NotAnAttribute, multiplier:1.0, constant:constant)
         self.addConstraint(constraint)
         return constraint
     }
@@ -209,9 +230,9 @@ extension UIView
     Full-featured syntax replacement shortcut for adding a constraint to a subview with a different attribute than self (targetView) and a custom constant value.
     - Returns:  Constraint added
     */
-    public func addConstraintForSubview(subview: UIView, subviewAttribute attribute: NSLayoutAttribute, toTargetViewAttribute targetViewAttribute: NSLayoutAttribute, constant: CGFloat) -> NSLayoutConstraint?
+    public func addConstraintForSubview(subview: UIView, subviewAttribute attribute: NSLayoutAttribute, toTargetViewAttribute targetViewAttribute: NSLayoutAttribute, constant: CGFloat) -> NSLayoutConstraint
     {
-        if self.logConstraintsErrorForSubview(subview, withMethodName: NSStringFromSelector(__FUNCTION__)) { return nil }
+        precondition(subviews.contains(subview), MissingSubviewCrashMessage)
         subview.translatesAutoresizingMaskIntoConstraints = false // mandatory to make constraints work
         let constraint = NSLayoutConstraint(item: self, attribute:targetViewAttribute, relatedBy:NSLayoutRelation.Equal, toItem:subview, attribute:attribute, multiplier:1.0, constant:constant)
         self.addConstraint(constraint)
@@ -222,8 +243,9 @@ extension UIView
     Adds an equivalency constraint for a particular attribute.
     - Returns: Constraint added
     */
-    public func addEqualConstraintForSubview(subview: UIView, attribute: NSLayoutAttribute) -> NSLayoutConstraint?
+    public func addEqualConstraintForSubview(subview: UIView, attribute: NSLayoutAttribute) -> NSLayoutConstraint
     {
+        precondition(subviews.contains(subview), MissingSubviewCrashMessage)
         return self.addConstraintForSubview(subview, subviewAttribute:attribute, toTargetViewAttribute:attribute, constant:0)
     }
     
@@ -233,11 +255,10 @@ extension UIView
     */
     public func addEqualConstraintsForSubview(subview: UIView, attributes: [NSLayoutAttribute]) -> [NSLayoutConstraint]?
     {
+        precondition(subviews.contains(subview), MissingSubviewCrashMessage)
         var constraints = [NSLayoutConstraint]()
         for attribute in attributes {
-            if let constraint = self.addEqualConstraintForSubview(subview, attribute: attribute) {
-                constraints.append(constraint)
-            }
+            constraints.append(self.addEqualConstraintForSubview(subview, attribute: attribute))
         }
         return (constraints.count == 0 ? nil : constraints)
     }
@@ -246,9 +267,9 @@ extension UIView
     Adds an equivalency constraint for a different attribute of self (targetView) and subview.
     - Returns:  Constraint added
     */
-    
-    public func addEqualConstraintForSubview(subview: UIView, subviewAttribute attribute: NSLayoutAttribute, toTargetViewAttribute targetViewAttribute: NSLayoutAttribute) -> NSLayoutConstraint?
+    public func addEqualConstraintForSubview(subview: UIView, subviewAttribute attribute: NSLayoutAttribute, toAttribute targetViewAttribute: NSLayoutAttribute) -> NSLayoutConstraint?
     {
+        precondition(subviews.contains(subview), MissingSubviewCrashMessage)
         return self.addConstraintForSubview(subview, subviewAttribute:attribute, toTargetViewAttribute:targetViewAttribute, constant:0)
     }
     
@@ -256,8 +277,10 @@ extension UIView
     Adds an equivalency constraint between two sibling subviews for a particular attribute.
     - Returns:  Constraint added
     */
-    public func addEqualConstraintForSubview(subview: UIView, otherSubview: UIView, attribute: NSLayoutAttribute) -> NSLayoutConstraint?
+    public func addEqualConstraintForSubview(subview: UIView, otherSubview: UIView, attribute: NSLayoutAttribute) -> NSLayoutConstraint
     {
+        precondition(subviews.contains(subview), MissingSubviewCrashMessage)
+        precondition(subviews.contains(otherSubview), MissingSubviewCrashMessage)
         return self.addEqualConstraintForSubview(subview, attribute:attribute, otherSubview:otherSubview, otherAttribute:attribute)
     }
     
@@ -265,24 +288,25 @@ extension UIView
     Adds an equivalency constraint between two sibling subviews for a particular set of attributes.
     - Returns:  Constraints added
     */
-    public func addEqualConstraintsForSubview(subview: UIView, otherSubview: UIView, attributes: [NSLayoutAttribute]) -> [NSLayoutConstraint]?
+    public func addEqualConstraintsForSubview(subview: UIView, otherSubview: UIView, attributes: [NSLayoutAttribute]) -> [NSLayoutConstraint]
     {
+        precondition(subviews.contains(subview), MissingSubviewCrashMessage)
+        precondition(subviews.contains(otherSubview), MissingSubviewCrashMessage)
         var constraints = [NSLayoutConstraint]()
         for attribute in attributes {
-            if let constraint = self.addEqualConstraintForSubview(subview, attribute: attribute, otherSubview:otherSubview, otherAttribute:attribute) {
-                constraints.append(constraint)
-            }
+            constraints.append(self.addEqualConstraintForSubview(subview, attribute: attribute, otherSubview:otherSubview, otherAttribute:attribute))
         }
-        return (constraints.count == 0 ? nil : constraints)
+        return constraints
     }
     
     /**
     Adds an equivalency constraint for different attributes of two sibling subviews.
     - Returns:  Constraint added
     */
-    public func addEqualConstraintForSubview(subview: UIView, attribute: NSLayoutAttribute, otherSubview: UIView, otherAttribute: NSLayoutAttribute) -> NSLayoutConstraint?
+    public func addEqualConstraintForSubview(subview: UIView, attribute: NSLayoutAttribute, otherSubview: UIView, otherAttribute: NSLayoutAttribute) -> NSLayoutConstraint
     {
-        if self.logConstraintsErrorForSubviews([subview, otherSubview], withMethodName: NSStringFromSelector(__FUNCTION__)) { return nil }
+        precondition(subviews.contains(subview), MissingSubviewCrashMessage)
+        precondition(subviews.contains(otherSubview), MissingSubviewCrashMessage)
         subview.translatesAutoresizingMaskIntoConstraints = false // mandatory to make constraints work
         otherSubview.translatesAutoresizingMaskIntoConstraints = false // mandatory to make constraints work
         let constraint = NSLayoutConstraint(item: subview, attribute:attribute, relatedBy:NSLayoutRelation.Equal, toItem:otherSubview, attribute:otherAttribute, multiplier:1.0, constant:0)
@@ -305,7 +329,7 @@ extension UIView
         let containerView = UIView()
         scrollView.addSubview(containerView)
         scrollView.addSizeMatchingConstraintsForSubview(containerView, withMargins: margins ?? UIEdgeInsetsZero)
-        scrollView.addEqualConstraintForSubview(containerView, attribute: NSLayoutAttribute.CenterX)
+        scrollView.addEqualConstraintForSubview(containerView, attribute: .CenterX)
         return containerView
     }
     
@@ -357,62 +381,27 @@ extension UIView
     */
     public func addStackingConstraintsForSubview(subview: UIView, topItem: UIView, top: CGFloat, edgeMargins: CGFloat? = 0, bottomItem: UIView? = nil, bottom: CGFloat? = nil, height: CGFloat? = nil)
     {
+        precondition(subviews.contains(subview), MissingSubviewCrashMessage)
         if topItem == self {
-            self.addEqualConstraintForSubview(subview, attribute: NSLayoutAttribute.Top)!.constant = top * -1.0
+            self.addEqualConstraintForSubview(subview, attribute: .Top).constant = top * -1.0
         }
         else {
-            self.addEqualConstraintForSubview(subview, attribute: NSLayoutAttribute.Top, otherSubview: topItem, otherAttribute: NSLayoutAttribute.Bottom)!.constant = top
+            self.addEqualConstraintForSubview(subview, attribute: .Top, otherSubview: topItem, otherAttribute: .Bottom).constant = top
         }
         if let edgeMargins = edgeMargins {
-            self.addEqualConstraintForSubview(subview, attribute: NSLayoutAttribute.Leading)!.constant = edgeMargins * -1.0
-            self.addEqualConstraintForSubview(subview, attribute: NSLayoutAttribute.Trailing)!.constant = edgeMargins
+            self.addEqualConstraintForSubview(subview, attribute: .Leading).constant = edgeMargins * -1.0
+            self.addEqualConstraintForSubview(subview, attribute: .Trailing).constant = edgeMargins
         }
-        if bottomItem != nil && bottom != nil {
-            if bottomItem! == self {
-                self.addEqualConstraintForSubview(subview, attribute: NSLayoutAttribute.Bottom)!.constant = bottom!
+        if let bottomItem = bottomItem, bottom = bottom {
+            if bottomItem == self {
+                self.addEqualConstraintForSubview(subview, attribute: .Bottom).constant = bottom
             }
             else {
-                self.addEqualConstraintForSubview(subview, attribute: NSLayoutAttribute.Bottom, otherSubview: bottomItem!, otherAttribute: NSLayoutAttribute.Top)!.constant = bottom! * -1.0
+                self.addEqualConstraintForSubview(subview, attribute: .Bottom, otherSubview: bottomItem, otherAttribute: .Top).constant = bottom * -1.0
             }
         }
-        if height != nil {
-            subview.addSimpleConstraintForAttribute(NSLayoutAttribute.Height, constant: height!)
+        if let height = height {
+            subview.addSimpleConstraintForAttribute(.Height, constant: height)
         }
-    }
-
-    
-    // MARK: - Private Methods
-    
-    private func logConstraintsErrorForSubview(subview:UIView, withMethodName methodName:String) -> Bool
-    {
-        if !self.subviews.contains(subview) {
-            print("\(methodName) not found in view \(self)")
-            return true
-        }
-        return false
-    }
-    
-    private func logConstraintsErrorForSubviews(subviews:[UIView], withMethodName methodName:String) -> Bool
-    {
-        var validSubviews = 0
-        for subview in subviews {
-            if self.logConstraintsErrorForSubview(subview, withMethodName: methodName) == false {
-                validSubviews++
-            }
-        }
-        return (validSubviews < subviews.count)
-    }
-    
-    private func logErrorForNonSingleConstraintCount(count:Int,  withMethodName methodName:String) -> Bool
-    {
-        if count != 1
-        {
-            print("\(methodName) - error: \(count) constraints were generated. Modify the format so it only creates a single constraint.")
-            if count > 0 {
-                print("Only the first constraint generated will be used.")
-            }
-            return true
-        }
-        return false
     }
 }

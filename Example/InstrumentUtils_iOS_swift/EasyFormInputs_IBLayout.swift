@@ -57,38 +57,38 @@ class EasyFormInputs_IBLayout: UIViewController {
         // Components are now added to each container...
         
         // Single Line Text Input
-        self.textInput = EasyFormInput(parentView: container1, type: EasyFormInputType.Text, title: "Name", configuration: config)
+        self.textInput = EasyFormInput(parentView: container1, type: .Text, title: "Name", configuration: config)
         
         // Email Input
-        self.emailInput = EasyFormInput(parentView: container2, type: EasyFormInputType.Email, title: "Email", required: true, configuration: config)
+        self.emailInput = EasyFormInput(parentView: container2, type: .Email, title: "Email", required: true, configuration: config)
         
         // Multi-line Text Input
         config.multiline = true
-        self.multilineTextInput = EasyFormInput(parentView: container3, type: EasyFormInputType.Text, title: "Description", initialValue:"This is a multiline text container that will automatically expand as you enter text.", configuration: config)
+        self.multilineTextInput = EasyFormInput(parentView: container3, type: .Text, title: "Description", initialValue:"This is a multiline text container that will automatically expand as you enter text.", configuration: config)
         
         // Rounded Number Input
         config.multiline = false
         config.decimalPlaces = 0
         config.minValueForNumberInput = 1
-        self.roundNumberInput = EasyFormInput(parentView: container4, type: EasyFormInputType.Number, title: "Guests - at least 1", required: true, configuration: config)
+        self.roundNumberInput = EasyFormInput(parentView: container4, type: .Number, title: "Guests - at least 1", required: true, configuration: config)
         
         // Currency Input with 2 fixed decimal places (numbers flow from right to left as they're typed in)
         config.minValueForNumberInput = 0
         config.decimalPlaces = 2
         config.decimalPlacesAreFixed = true
         config.currencySymbol = "$"
-        self.currencyInput = EasyFormInput(parentView: container5, type: EasyFormInputType.Number, title: "Price", configuration: config)
+        self.currencyInput = EasyFormInput(parentView: container5, type: .Number, title: "Price", configuration: config)
         
         // Date Input (you can customize the date style in the config if you want)
-        self.dateInput = EasyFormInput(parentView: container6, type: EasyFormInputType.Date, title: "Date", initialValue:NSDate(), configuration: config)
+        self.dateInput = EasyFormInput(parentView: container6, type: .Date, title: "Date", initialValue:NSDate(), configuration: config)
         
         // Select input with type-in search filtering (config.typeInSelect can be turned off for a plain select)
-        self.typeInSelectInput = EasyFormInput(parentView: container7, type: EasyFormInputType.Select, title: "Team", initialValue:"Crush", selectValues: teamData, configuration: config)
+        self.typeInSelectInput = EasyFormInput(parentView: container7, type: .Select, title: "Team", initialValue:"Crush", selectValues: teamData, configuration: config)
         
         // Select with search filtering that also lets you create a new unique value.
         config.typeInSelect = true
         config.typeInSelectAllowsUnique = true
-        self.typeInSelectWithUniqueInput = EasyFormInput(parentView: container8, type: EasyFormInputType.Select, title: "Client", selectValues: clientData, configuration: config)
+        self.typeInSelectWithUniqueInput = EasyFormInput(parentView: container8, type: .Select, title: "Client", selectValues: clientData, configuration: config)
     }
     
     @IBAction func submitTapped(sender:UIButton)

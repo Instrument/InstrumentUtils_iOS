@@ -4,7 +4,7 @@ Utils are in Swift 2.0, and can be used from Objective-C.
 
 EasyFormInput
 -------
-![EasyFormInput](Example/EasyFormInput.png)
+![EasyFormInput](readme-images/EasyFormInput.png)
 
 A handsome iOS text input component that can handle:
 
@@ -13,9 +13,11 @@ A handsome iOS text input component that can handle:
  - numerical entry with decimal & currency options
  - date selection
  - dropdown list selection, with type-in options for search or creating new entries
-![EasyFormInput Type-in Select](Example/EasyFormInput-typeInSelect.png)
+![EasyFormInput Type-in Select](readme-images/EasyFormInput-typeInSelect.png)
 
-The component shows the input title in the main textfield as a prompt with a line below it. When tapped into the title, the line transitions color and the title transitions to a small title above the entered or picked text.
+The component shows the input title in the main textfield as a prompt with a line below it.
+
+When the user taps on the form, the underline changes color and the title becomes a small heading.
 
 You can configure:
 
@@ -24,28 +26,62 @@ You can configure:
  - Line color, and color during editing
  - Padding around the component and main text
 
-The component works in a UIScrollView (and most likely in a UITableView as well, although I haven't tested that). The selected field will scroll into view when the keyboard shows.
+The component works in a UIScrollView (and most likely in a UITableView as well, although I haven't tested that). A sample project is included which describes how to set up the necessary Auto Layout constraints, using an IB layout or code only. Once set up correctly, components will fluidly resize within the scroll view, and the selected form will scroll into view when the keyboard shows.
 
-To use in a scroll view, set up a blank container view that has constraints on it including a nominal height (perhaps 50 points) and constraints that bind it above and below. As long as everything in scroll view is bound from the superview top to bottom and each item includes a height, the scroll view will be able to calculate its content size automatically and will operate correctly. (Note that your container view's height constraint will be replaced at runtime so it can change its height dynamically, so don't expect a fixed height, and don't add any referencing outlet on the container's height constraint.)
+Setting up constraints requires a small amount of effort to get right. But luckily, using the form component is simple. Set up a config, instantiate, check its value.
 
-As long as constraints are in place you should be able to set up a config containing your settings, optionally set a delegate, call a single constructor, and then check the component's `value` property to retrieve the input value.
+A single config can be handily reused since it's a struct:
 
 ``` Swift
-if let validEmail = emailInput.value as? String { }
+var config = EasyFormInputConfig()
+config.textFont = UIFont(name: "Roboto-Medium", size:12.0)!
+config.textColor = UIColor.blackColor()
+```
+Next, instantiate the component:
 
-if let date = dateInput.value as? NSDate { }
-
-if let teamSelection = teamInput.value as? [String:String] { }
-else if let newTeamName = teamInput.value as? String { }
+``` Swift
+self.emailInput = EasyFormInput(parentView: container1, type: .Email, title: "Email", required:true, configuration: config)
 ```
 
-See component documentation for more details.
+(The last two parameters in the above example are optional. Other optional parameters include `initialValue` and `selectValues`.)
+
+Then just use the `value` getter to check and retrieve input. The type of value returned will match the form's type. 
+
+``` Swift
+// .Email
+if !emailInput.valueIsValid() {
+	emailInput.becomeFirstResponder()
+	return
+}
+if let email = emailInput.value as? String {…}
+
+// .Date
+if let date = dateInput.value as? NSDate {…}
+
+// .Select
+if let teamData = teamInput.value as? [String:String] {…}
+
+// .Select + config.typeInSelectAllowsUnique
+if let clientSelection = clientInput.value as? [String:String] {
+	// existing item was picked
+}
+else if let newClientName = clientInput.value as? String {
+	// user typed in a unique entry
+}
+```
+
+The `valueIsValid()` method shown above is pretty basic, it will return `false` on a bad email or a required field that was left blank.
+
+The returned `value` will be `nil` if the form is in an unset state. You can also peek at the form's `rawText` value and check whether `stateIsEmptyOrDefault()` if you need to.
+
+See the sample project for more details.
 
 
 BlockingProgressIndicator
 -------
 A simple blocking spinnner view with the option to show a text string. Font and text color are configurable prior to use.
 
+![BlockingProgressIndicator](BlockingProgressIndicator.png)
 
 ConstraintsHelpers
 -------
@@ -55,6 +91,7 @@ Shortcut methods for working with auto-layout constraints.
 extension UIView
 
 // Retrieval
+func getSimpleConstraintWithAttribute:
 func getConstraintsForOtherView:
 func getConstraintForOtherView:withAttribute:
 
@@ -79,29 +116,39 @@ func addEqualConstraintsForSubview:otherSubview:attributes:
 func addEqualConstraintForSubview:attribute:otherSubview:otherAttribute:
 
 // Scroll View Constraints Helpers
-createScrollableContainerViewInScrollView:margins:
-createScrollableContainerView:
-addStackingConstraintsForSubview:subview:topItem:top:edgeMargins:bottomItem:bottom:height:
+func createScrollableContainerViewInScrollView:margins:
+func createScrollableContainerView:
+func addStackingConstraintsForSubview:subview:topItem:top:edgeMargins:bottomItem:bottom:height:
 ```
-    
+
+example:
+
+``` Swift
+view.addSizeMatchingConstraintsForSubview(scrimView)
+view.addCenteringConstraintsForSubview(spinner)
+view.addEqualConstraintForSubview(label, attribute: .CenterX)
+view.addEqualConstraintForSubview(label, attribute: .CenterY).constant = 40.0
+```
 
 TwoLineNavBarTitle
 -------
 Shows two lines of text in your UINavigationController's top bar. Font and text color are configurable prior to use.
 
-Display modes include:
-
- - Large title with smaller subtitle below it
-
 ``` Swift
-class func updateNavBarTitleFor(viewController:UIViewController, title:String, subtitle:String)
+// In your view controller:
+
+// Title with smaller subtitle below it
+TwoLineNavBarTitle.updateNavBarTitleFor(self, title: titleString,
+	 subtitle: subtitleString)
+
+// Title that auto-shrinks & word-wraps to 2 lines
+TwoLineNavBarTitle.updateNavBarTitleFor(self, title: titleString)
 ```
 
- - Single title that word-wraps to two lines for long titles
+![TwoLineNavBarTitle with subtitle](readme-images/TwoLineNavBarTitle-subtitle.png)
 
-``` Swift
-class func updateNavBarTitleFor(viewController:UIViewController, title:String)
-```
+![TwoLineNavBarTitle with word-wrap](readme-images/TwoLineNavBarTitle-wrapping.png)
+
 Installation
 ------------
 
