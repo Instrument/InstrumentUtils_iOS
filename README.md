@@ -28,7 +28,7 @@ You can configure:
 
 The component works in a UIScrollView (and most likely in a UITableView as well, although I haven't tested that). A sample project is included which describes how to set up the necessary Auto Layout constraints, using an IB layout or code only. Once set up correctly, components will fluidly resize within the scroll view, and the selected form will scroll into view when the keyboard shows.
 
-Setting up constraints requires a small amount of effort to get right. But luckily, using the form component is simple. Set up a config, instantiate, check its value.
+Setting up constraints requires a small amount of effort to get right, but using the form component is really simple. You just create a config, create the component, and check its value.
 
 A single config can be handily reused since it's a struct:
 
@@ -45,7 +45,7 @@ self.emailInput = EasyFormInput(parentView: container1, type: .Email, title: "Em
 
 (The last two parameters in the above example are optional. Other optional parameters include `initialValue` and `selectValues`.)
 
-Then just use the `value` getter to check and retrieve input. The type of value returned will match the form's type. 
+Now just check its `value`. The return type of `Any` can be casted using `if let` to the expected type:
 
 ``` Swift
 // .Email
@@ -70,9 +70,9 @@ else if let newClientName = clientInput.value as? String {
 }
 ```
 
-The `valueIsValid()` method shown above is pretty basic, it will return `false` on a bad email or a required field that was left blank.
+The returned `value` will be `nil` if the form is in an unset state. The `valueIsValid()` method shown above is pretty basic, it will return `false` on a bad email or a required field that was left blank. 
 
-The returned `value` will be `nil` if the form is in an unset state. You can also peek at the form's `rawText` value and check whether `stateIsEmptyOrDefault()` if you need to.
+For more advance usage you may set a `delegate` on the component to respond to text changes. You can also peek at the form's `rawText` value and check whether `stateIsEmptyOrDefault()` if you need to.
 
 See the sample project for more details.
 
